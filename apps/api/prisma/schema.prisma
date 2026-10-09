@@ -19,6 +19,7 @@ model Player {
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
   sessions        PlayerSession[]
+  rounds          GameRound[]
 
   @@map("players")
 }
@@ -43,4 +44,23 @@ model Checkpoint {
   rewardName    String @map("reward_name")
 
   @@map("checkpoints")
+}
+
+/// One play of the game. `requestId` makes retries idempotent within a progress version.
+model GameRound {
+  id              String   @id @default(uuid()) @db.Uuid
+  playerId        String   @map("player_id") @db.Uuid
+  requestId       String   @map("request_id") @db.Uuid
+  progressVersion Int      @map("progress_version")
+  /// 300, 500, 1000 or 3000.
+  pickedScore     Int      @map("picked_score")
+  /// Points actually added after applying the 10,000 cap.
+  creditedScore   Int      @map("credited_score")
+  totalScoreAfter Int      @map("total_score_after")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, progressVersion, requestId])
+  @@index([playerId, progressVersion, createdAt(sort: Desc)])
+  @@map("game_rounds")
 }

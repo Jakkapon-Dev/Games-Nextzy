@@ -5,6 +5,9 @@ import { HttpExceptionFilter } from './common/http/http-exception.filter.js';
 
 function firstConstraintMessage(errors: ValidationError[]): string | undefined {
   for (const error of errors) {
+    if (error.constraints?.whitelistValidation) {
+      return `ไม่รองรับฟิลด์ ${error.property}`;
+    }
     const message = Object.values(error.constraints ?? {})[0];
     if (message) return message;
     const nested = firstConstraintMessage(error.children ?? []);
