@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import pg from 'pg';
 import { splitDatabaseUrl } from './test-database-url.js';
 
@@ -21,9 +21,6 @@ export default async function setup(): Promise<void> {
     await admin.end();
   }
 
-  execFileSync('npx', ['prisma', 'migrate', 'deploy'], {
-    env: process.env,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
+  // A fixed command string works with npx on both Windows and Linux.
+  execSync('npx prisma migrate deploy', { env: process.env, stdio: 'inherit' });
 }
