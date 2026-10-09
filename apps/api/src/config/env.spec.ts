@@ -4,17 +4,17 @@ describe('readEnv', () => {
   const databaseUrl = 'postgresql://user:pass@localhost:5432/db';
 
   it('returns the parsed configuration', () => {
-    expect(readEnv({ DATABASE_URL: databaseUrl, PORT: '3001', NODE_ENV: 'production' })).toEqual({
+    expect(readEnv({ DATABASE_URL: databaseUrl, PORT: '4000', NODE_ENV: 'production' })).toEqual({
       databaseUrl,
-      port: 3001,
+      port: 4000,
       isProduction: true,
     });
   });
 
-  it('defaults the port to 3000 outside production', () => {
+  it('defaults the port to 3001 outside production', () => {
     expect(readEnv({ DATABASE_URL: databaseUrl })).toEqual({
       databaseUrl,
-      port: 3000,
+      port: 3001,
       isProduction: false,
     });
   });

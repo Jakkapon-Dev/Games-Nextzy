@@ -9,6 +9,7 @@
     "node": ">=24"
   },
   "scripts": {
+    "dev": "concurrently --names api,web --prefix-colors blue,green \"npm run start:dev -w apps/api\" \"npm run dev -w apps/web\"",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -17,6 +18,7 @@
     "format:check": "prettier --check apps .github package.json .prettierrc.json README.md --ignore-unknown --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
+    "concurrently": "^10.0.6",
     "prettier": "3.9.9"
   }
 }
