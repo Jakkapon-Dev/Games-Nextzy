@@ -4,6 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
 import { configureApp } from './../src/app.setup.js';
+import { PrismaService } from './../src/prisma/prisma.service.js';
 
 describe('App (e2e)', () => {
   let app: INestApplication<App>;
@@ -30,6 +31,15 @@ describe('App (e2e)', () => {
       .send('{"progressVersion": ')
       .expect(400);
     expect(response.body).toEqual({ code: 'VALIDATION_ERROR', message: 'ข้อมูลคำขอไม่ถูกต้อง' });
+  });
+
+  it('runs against the dedicated test database with migrated reference data', async () => {
+    const prisma = app.get(PrismaService);
+    const [{ current_database: database }] = await prisma.$queryRaw<
+      { current_database: string }[]
+    >`SELECT current_database()`;
+    expect(database).toMatch(/_test$/);
+    expect(await prisma.checkpoint.count()).toBe(3);
   });
 
   afterEach(async () => {
