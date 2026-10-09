@@ -20,6 +20,7 @@ model Player {
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
   sessions        PlayerSession[]
   rounds          GameRound[]
+  rewardClaims    RewardClaim[]
 
   @@map("players")
 }
@@ -39,9 +40,10 @@ model PlayerSession {
 
 /// Reward checkpoint. Rows are inserted by the migration that creates the table.
 model Checkpoint {
-  id            String @id
-  requiredScore Int    @unique @map("required_score")
-  rewardName    String @map("reward_name")
+  id            String        @id
+  requiredScore Int           @unique @map("required_score")
+  rewardName    String        @map("reward_name")
+  claims        RewardClaim[]
 
   @@map("checkpoints")
 }
@@ -63,4 +65,19 @@ model GameRound {
   @@unique([playerId, progressVersion, requestId])
   @@index([playerId, progressVersion, createdAt(sort: Desc)])
   @@map("game_rounds")
+}
+
+/// A reward claimed for a checkpoint. One claim per checkpoint per progress version.
+model RewardClaim {
+  id              String     @id @default(uuid()) @db.Uuid
+  playerId        String     @map("player_id") @db.Uuid
+  checkpointId    String     @map("checkpoint_id")
+  progressVersion Int        @map("progress_version")
+  claimedAt       DateTime   @default(now()) @map("claimed_at") @db.Timestamptz(3)
+  player          Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  checkpoint      Checkpoint @relation(fields: [checkpointId], references: [id])
+
+  @@unique([playerId, progressVersion, checkpointId])
+  @@index([playerId, progressVersion, claimedAt(sort: Desc)])
+  @@map("reward_claims")
 }
