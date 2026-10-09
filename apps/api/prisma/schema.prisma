@@ -1,0 +1,11 @@
+// Prisma schema for the Nextzy points game API.
+// Models are added together with their first migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
