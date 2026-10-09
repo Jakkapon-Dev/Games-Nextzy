@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
+import { configureApp } from './../src/app.setup.js';
 
 describe('App (e2e)', () => {
   let app: INestApplication<App>;
@@ -13,12 +14,22 @@ describe('App (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
+    configureApp(app);
     await app.init();
   });
 
-  it('responds with 404 for an unknown route under /api', () => {
-    return request(app.getHttpServer()).get('/api/unknown').expect(404);
+  it('responds with the standard error body for an unknown route', async () => {
+    const response = await request(app.getHttpServer()).get('/api/unknown').expect(404);
+    expect(response.body).toEqual({ code: 'NOT_FOUND', message: 'ไม่พบเส้นทางที่ร้องขอ' });
+  });
+
+  it('responds with VALIDATION_ERROR for a malformed JSON body', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/unknown')
+      .set('Content-Type', 'application/json')
+      .send('{"progressVersion": ')
+      .expect(400);
+    expect(response.body).toEqual({ code: 'VALIDATION_ERROR', message: 'ข้อมูลคำขอไม่ถูกต้อง' });
   });
 
   afterEach(async () => {
