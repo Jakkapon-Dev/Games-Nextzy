@@ -4,3 +4,4 @@ build/
 .next/
 coverage/
 package-lock.json
+next-env.d.ts
