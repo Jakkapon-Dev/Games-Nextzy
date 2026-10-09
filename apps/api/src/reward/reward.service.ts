@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DomainError } from '../common/errors/domain-error.js';
+import type { Paginated, PaginationQueryDto } from '../common/http/pagination.dto.js';
 import { checkpointStatus } from '../game/domain/game-rules.js';
-import { Prisma } from '../generated/prisma/client.js';
+import { type Player, Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { ClaimRewardDto } from './dto/claim-reward.dto.js';
-import type { ClaimedRewardDto } from './dto/reward-claim.dto.js';
+import type { ClaimedRewardDto, RewardHistoryItemDto } from './dto/reward-claim.dto.js';
 
 interface LockedPlayer {
   total_score: number;
@@ -83,5 +84,35 @@ export class RewardService {
       }
       throw error;
     }
+  }
+
+  /** Claims of the current progress version, newest first. */
+  async history(
+    player: Player,
+    query: PaginationQueryDto,
+  ): Promise<Paginated<RewardHistoryItemDto>> {
+    const where = { playerId: player.id, progressVersion: player.progressVersion };
+    const [claims, totalItems] = await this.prisma.$transaction([
+      this.prisma.rewardClaim.findMany({
+        where,
+        include: { checkpoint: true },
+        orderBy: [{ claimedAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.prisma.rewardClaim.count({ where }),
+    ]);
+
+    return {
+      items: claims.map((claim) => ({
+        claimId: claim.id,
+        checkpointId: claim.checkpointId,
+        rewardName: claim.checkpoint.rewardName,
+        claimedAt: claim.claimedAt.toISOString(),
+      })),
+      page: query.page,
+      limit: query.limit,
+      totalItems,
+    };
   }
 }

@@ -8,3 +8,11 @@ export interface ClaimedRewardDto {
   totalScore: number;
   progressVersion: number;
 }
+
+export interface RewardHistoryItemDto {
+  claimId: string;
+  checkpointId: string;
+  rewardName: string;
+  /** ISO 8601, UTC. */
+  claimedAt: string;
+}
