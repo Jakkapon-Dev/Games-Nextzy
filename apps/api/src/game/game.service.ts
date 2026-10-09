@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DomainError } from '../common/errors/domain-error.js';
-import type { GameRound } from '../generated/prisma/client.js';
+import type { Paginated, PaginationQueryDto } from '../common/http/pagination.dto.js';
+import type { GameRound, Player } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { creditedScore, pickScore, type RandomSource } from './domain/game-rules.js';
-import type { PlayedRoundDto } from './dto/game-round.dto.js';
+import type { GameHistoryItemDto, PlayedRoundDto } from './dto/game-round.dto.js';
 import type { PlayGameRoundDto } from './dto/play-game-round.dto.js';
 import { RANDOM_SOURCE } from './game.constants.js';
 
@@ -79,5 +80,32 @@ export class GameService {
 
       return toPlayedRound(round);
     });
+  }
+
+  /** Rounds of the current progress version, newest first. */
+  async history(player: Player, query: PaginationQueryDto): Promise<Paginated<GameHistoryItemDto>> {
+    const where = { playerId: player.id, progressVersion: player.progressVersion };
+    const [rounds, totalItems] = await this.prisma.$transaction([
+      this.prisma.gameRound.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.prisma.gameRound.count({ where }),
+    ]);
+
+    return {
+      items: rounds.map((round) => ({
+        roundId: round.id,
+        pickedScore: round.pickedScore,
+        creditedScore: round.creditedScore,
+        totalScoreAfter: round.totalScoreAfter,
+        createdAt: round.createdAt.toISOString(),
+      })),
+      page: query.page,
+      limit: query.limit,
+      totalItems,
+    };
   }
 }
