@@ -1,5 +1,4 @@
 // Prisma schema for the Nextzy points game API.
-// Models are added together with their first migration.
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +7,40 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// Anonymous player identified by a browser session.
+model Player {
+  id              String          @id @default(uuid()) @db.Uuid
+  /// 0..10000, enforced by a CHECK constraint in the migration.
+  totalScore      Int             @default(0) @map("total_score")
+  /// Starts at 1 and increments only when progress is reset.
+  progressVersion Int             @default(1) @map("progress_version")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sessions        PlayerSession[]
+
+  @@map("players")
+}
+
+/// Browser session. Only the SHA-256 hash of the cookie token is stored.
+model PlayerSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  playerId  String   @map("player_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@map("player_sessions")
+}
+
+/// Reward checkpoint. Rows are inserted by the migration that creates the table.
+model Checkpoint {
+  id            String @id
+  requiredScore Int    @unique @map("required_score")
+  rewardName    String @map("reward_name")
+
+  @@map("checkpoints")
 }
