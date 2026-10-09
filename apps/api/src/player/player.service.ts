@@ -9,11 +9,14 @@ export class PlayerService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getProgress(player: Player): Promise<PlayerProgressDto> {
-    const checkpoints = await this.prisma.checkpoint.findMany({
-      orderBy: { requiredScore: 'asc' },
-    });
-    // Reward claims are introduced with the claim endpoint; until then nothing is claimed.
-    const claimedIds = new Set<string>();
+    const [checkpoints, claims] = await Promise.all([
+      this.prisma.checkpoint.findMany({ orderBy: { requiredScore: 'asc' } }),
+      this.prisma.rewardClaim.findMany({
+        where: { playerId: player.id, progressVersion: player.progressVersion },
+        select: { checkpointId: true },
+      }),
+    ]);
+    const claimedIds = new Set(claims.map((claim) => claim.checkpointId));
 
     return {
       totalScore: player.totalScore,
