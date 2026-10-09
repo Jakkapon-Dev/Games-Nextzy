@@ -1,4 +1,5 @@
 import { INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import { RequestValidationError } from './common/errors/request-validation.error.js';
 import { HttpExceptionFilter } from './common/http/http-exception.filter.js';
 
@@ -15,6 +16,7 @@ function firstConstraintMessage(errors: ValidationError[]): string | undefined {
 /** Shared HTTP configuration used by the server and the e2e tests. */
 export function configureApp(app: INestApplication): void {
   app.setGlobalPrefix('api');
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

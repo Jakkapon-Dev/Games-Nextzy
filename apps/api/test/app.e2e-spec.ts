@@ -1,22 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
-import { AppModule } from './../src/app.module.js';
-import { configureApp } from './../src/app.setup.js';
 import { PrismaService } from './../src/prisma/prisma.service.js';
+import { createTestApp } from './support/create-test-app.js';
 
 describe('App (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    app = await createTestApp();
+  });
 
-    app = moduleFixture.createNestApplication();
-    configureApp(app);
-    await app.init();
+  afterEach(async () => {
+    await app.close();
   });
 
   it('responds with the standard error body for an unknown route', async () => {
@@ -40,9 +36,5 @@ describe('App (e2e)', () => {
     >`SELECT current_database()`;
     expect(database).toMatch(/_test$/);
     expect(await prisma.checkpoint.count()).toBe(3);
-  });
-
-  afterEach(async () => {
-    await app.close();
   });
 });
