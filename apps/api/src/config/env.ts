@@ -20,7 +20,7 @@ export function readEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error('DATABASE_URL is not set. Copy apps/api/.env.example to apps/api/.env.');
   }
 
-  const port = Number(source.PORT ?? 3000);
+  const port = Number(source.PORT ?? 3001);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be an integer between 1 and 65535, got "${source.PORT}".`);
   }
