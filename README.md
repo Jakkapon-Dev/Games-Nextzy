@@ -113,6 +113,12 @@ Requirements: Node.js 24 and a local PostgreSQL server (CI uses PostgreSQL 18).
 npm ci
 ```
 
+Generate the Prisma Client before starting the API on a fresh checkout. Generated files are not committed.
+
+```bash
+npm run prisma:generate -w api
+```
+
 Create `apps/api/.env` from `apps/api/.env.example` and point `DATABASE_URL` at a local database, for example `nextzy_dev`. The web app's defaults work without a `.env` file.
 
 ```bash
