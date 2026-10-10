@@ -1,8 +1,15 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from './api/api-error';
 import { api } from './api/client';
+import type { Page } from './api/types';
+
+export const HISTORY_PAGE_SIZE = 20;
+
+function nextPage<T>(last: Page<T>): number | undefined {
+  return last.page * last.limit < last.totalItems ? last.page + 1 : undefined;
+}
 
 export const queryKeys = {
   session: ['session'] as const,
@@ -64,5 +71,29 @@ export function useClaimReward() {
         return queryClient.invalidateQueries({ queryKey: queryKeys.progress });
       }
     },
+  });
+}
+
+/** Game rounds of the current progress cycle, newest first, loaded page by page. */
+export function useGameHistory() {
+  const session = useSession();
+  return useInfiniteQuery({
+    queryKey: queryKeys.gameHistory,
+    queryFn: ({ pageParam }) => api.getGameHistory({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: nextPage,
+    enabled: session.isSuccess,
+  });
+}
+
+/** Reward claims of the current progress cycle, newest first, loaded page by page. */
+export function useRewardHistory() {
+  const session = useSession();
+  return useInfiniteQuery({
+    queryKey: queryKeys.rewardHistory,
+    queryFn: ({ pageParam }) => api.getRewardHistory({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: nextPage,
+    enabled: session.isSuccess,
   });
 }
