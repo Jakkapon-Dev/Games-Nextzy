@@ -36,7 +36,9 @@ export function HistoryList({
             <p className="text-base leading-6 font-bold text-text">
               {item.title}
               {item.note && (
-                <span className="ml-1 text-xs font-normal text-text-muted">{item.note}</span>
+                <span className="ml-1 inline-block text-xs font-normal whitespace-nowrap text-text-muted">
+                  {item.note}
+                </span>
               )}
             </p>
             <p className="text-sm leading-6 text-text-muted">{item.subtitle}</p>

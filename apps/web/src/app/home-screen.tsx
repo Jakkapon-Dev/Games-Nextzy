@@ -6,6 +6,7 @@ import { RewardButtons } from '@/components/home/reward-buttons';
 import { ScoreCard } from '@/components/home/score-card';
 import { ShareButton } from '@/components/home/share-button';
 import { CrownCoin } from '@/components/icons/crown-coin';
+import { ErrorState } from '@/components/ui/error-state';
 import { Modal } from '@/components/ui/modal';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import type { ClaimedReward } from '@/lib/api/types';
@@ -21,12 +22,11 @@ export function HomeScreen() {
     <>
       <div className="bg-header px-4 py-4">
         {isError ? (
-          <div role="alert" className="space-y-2 rounded-card bg-white p-4 text-center">
-            <p>{error instanceof Error ? error.message : 'เกิดข้อผิดพลาด'}</p>
-            <button type="button" className="underline" onClick={() => void retry()}>
-              ลองใหม่
-            </button>
-          </div>
+          <ErrorState
+            className="rounded-card bg-white px-4 py-8"
+            message={error instanceof Error ? error.message : 'เกิดข้อผิดพลาด'}
+            onRetry={() => void retry()}
+          />
         ) : data ? (
           <ScoreCard
             progress={data}
@@ -52,7 +52,7 @@ export function HomeScreen() {
           <div
             aria-busy="true"
             aria-label="กำลังโหลด"
-            className="h-[200px] animate-pulse rounded-card bg-white/70"
+            className="h-[200px] rounded-card bg-white/70 motion-safe:animate-pulse"
           />
         )}
 

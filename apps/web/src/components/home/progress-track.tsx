@@ -50,7 +50,7 @@ export function ProgressTrack({
       <div className="relative flex h-[30px] items-center" aria-hidden="true">
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-progress-track">
           <div
-            className="h-full rounded-full bg-linear-to-r from-progress-from to-progress-to transition-[width] duration-500"
+            className="h-full rounded-full bg-linear-to-r from-progress-from to-progress-to transition-[width] duration-500 motion-reduce:transition-none"
             style={{ width: `${percent}%` }}
           />
         </div>

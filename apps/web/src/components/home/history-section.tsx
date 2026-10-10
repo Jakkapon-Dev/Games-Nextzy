@@ -2,9 +2,10 @@
 
 import { type KeyboardEvent, useId, useRef, useState } from 'react';
 import type { GameHistoryItem, Page, RewardHistoryItem } from '@/lib/api/types';
+import { ErrorState } from '@/components/ui/error-state';
 import { cn } from '@/lib/cn';
 import { formatScore, formatThaiDateTime } from '@/lib/format';
-import { useGameHistory, useRewardHistory } from '@/lib/queries';
+import { useGameHistory, useRewardHistory, useSession } from '@/lib/queries';
 import { type HistoryItem, HistoryList } from './history-list';
 
 type Tab = 'play' | 'reward';
@@ -51,12 +52,11 @@ function HistoryPanel<T>({
 }) {
   if (query.isError) {
     return (
-      <div role="alert" className="px-6 py-8 text-center text-sm">
-        <p>{query.error.message}</p>
-        <button type="button" className="mt-2 underline" onClick={() => void query.refetch()}>
-          ลองใหม่
-        </button>
-      </div>
+      <ErrorState
+        className="border-t border-divider px-6 py-8"
+        message={query.error.message}
+        onRetry={() => void query.refetch()}
+      />
     );
   }
 
@@ -65,8 +65,8 @@ function HistoryPanel<T>({
       <ul aria-busy="true" aria-label="กำลังโหลดประวัติ" className="border-t border-divider">
         {[0, 1].map((key) => (
           <li key={key} className="flex h-20 items-center gap-4 border-b border-divider px-6">
-            <span className="size-12 animate-pulse rounded-full bg-divider" />
-            <span className="h-4 w-40 animate-pulse rounded bg-divider" />
+            <span className="size-12 rounded-full bg-divider motion-safe:animate-pulse" />
+            <span className="h-4 w-40 rounded bg-divider motion-safe:animate-pulse" />
           </li>
         ))}
       </ul>
@@ -107,6 +107,7 @@ export function HistorySection() {
   const [active, setActive] = useState<Tab>('play');
   const baseId = useId();
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ play: null, reward: null });
+  const session = useSession();
   const gameHistory = useGameHistory();
   const rewardHistory = useRewardHistory();
 
@@ -116,6 +117,9 @@ export function HistorySection() {
     setActive(next);
     tabRefs.current[next]?.focus();
   }
+
+  // Without a session the page-level error (with its retry button) is shown instead.
+  if (session.isError) return null;
 
   return (
     <section aria-label="ประวัติ">
