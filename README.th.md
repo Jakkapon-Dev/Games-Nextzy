@@ -113,6 +113,12 @@ render.yaml            Render blueprint ของ API
 npm ci
 ```
 
+สร้าง Prisma Client ก่อนเริ่ม API เมื่อติดตั้งจาก repository ใหม่ เพราะไม่ได้ commit ไฟล์ที่สร้างขึ้นนี้
+
+```bash
+npm run prisma:generate -w api
+```
+
 สร้างไฟล์ `apps/api/.env` โดยคัดลอกจาก `apps/api/.env.example` แล้วตั้ง `DATABASE_URL` ให้ชี้ฐานข้อมูลบนเครื่อง เช่น `nextzy_dev` ฝั่งเว็บใช้ค่าเริ่มต้นได้เลยโดยไม่ต้องมีไฟล์ `.env`
 
 ```bash
