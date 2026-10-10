@@ -14,8 +14,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "format": "prettier --write apps .github package.json .prettierrc.json README.md --ignore-unknown --no-error-on-unmatched-pattern",
-    "format:check": "prettier --check apps .github package.json .prettierrc.json README.md --ignore-unknown --no-error-on-unmatched-pattern"
+    "format": "prettier --write apps .github package.json .prettierrc.json README.md README.th.md docs render.yaml --ignore-unknown --no-error-on-unmatched-pattern",
+    "format:check": "prettier --check apps .github package.json .prettierrc.json README.md README.th.md docs render.yaml --ignore-unknown --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
     "concurrently": "^10.0.6",
