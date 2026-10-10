@@ -63,6 +63,7 @@ apps/
       reward/          การรับรางวัลและประวัติรางวัล
       health/          health check
       common/          รูปแบบ error, validation, pagination
+      shared/          domain model/error, transaction port และ Prisma adapter
     test/              e2e test กับฐานข้อมูลสำหรับทดสอบ
   web/                 แอป Next.js
     src/app/           หน้าแรกและหน้า /game
@@ -71,6 +72,30 @@ apps/
 docs/                  ภาพหน้าจอและบันทึกการพัฒนา
 render.yaml            Render blueprint ของ API
 ```
+
+### Backend: Clean Architecture
+
+แยก business logic ออกจาก HTTP และฐานข้อมูล โดย Domain และ Application ไม่ import NestJS, Prisma, Express หรือ DTO ของ Presentation มี `src/architecture.spec.ts` ตรวจ dependency เหล่านี้ในชุด test ปกติ
+
+```text
+game/ (player/, reward/ และ session/ แบ่งชั้นด้วยหลักเดียวกัน)
+  domain/          กฎเกมแบบ pure function และ interface ของตัวสุ่ม
+  application/     PlayGameRound, GetGameHistory และ repository port
+  infrastructure/  Prisma history repository และตัวสุ่มด้วย crypto
+  presentation/    controller และ HTTP DTO
+  game.module.ts   composition root: เชื่อม adapter เข้ากับ use case
+
+HTTP controller → application use case → domain rules
+                          ↓ repository / transaction interface
+                   infrastructure adapter → PostgreSQL
+```
+
+การเรียก adapter ขณะทำงานใช้ interface ที่ชั้นภายในเป็นเจ้าของ ไม่ใช่การ import Prisma ตัว NestJS module ใช้ factory สร้าง use case ที่เป็น TypeScript ธรรมดาและส่ง adapter ให้ interface ที่บอกความต้องการของ use case อยู่ใน Application ส่วน Domain เก็บ model และกฎที่ไม่ผูกกับ framework ฟีเจอร์ที่ไม่มีกฎธุรกิจ เช่น health ไม่ต้องสร้าง domain folder ให้ครบตามรูปแบบ
+
+- **Use cases:** เริ่ม/ตรวจ session, อ่านคะแนน, เล่นเกม, รับรางวัล, อ่านประวัติเกม/รางวัล, reset และตรวจ health ส่วน Controller ตรวจรูปแบบ HTTP และจัดการ cookie กับ status code
+- **Mutation แบบ atomic:** `ProgressUnitOfWork.withLockedPlayer` ครอบทั้งขั้นตอนเล่น รับรางวัล หรือ reset โดย Prisma adapter เปิด transaction เดียว ล็อกผู้เล่นด้วย `SELECT … FOR UPDATE` และให้ใช้เฉพาะ operations ภายใน transaction นั้น Use case ตัดสินคะแนน สิทธิ์รับรางวัล version หลัง reset และลำดับการตรวจ ส่วน adapter จัดการ SQL และแปลง duplicate-claim `P2002` เป็น domain error ไม่แยก write transaction คนละชุดตาม repository
+- **การอ่านข้อมูล:** repository port ของแต่ละฟีเจอร์ส่ง record กับ pagination ให้ use case คำนวณสถานะ checkpoint และแปลงเวลาเป็นผลลัพธ์ API โดย Prisma-generated types ไม่เข้ามาในชั้นภายใน
+- **การตรวจสอบ:** test ของ use case ใช้ fake port ได้โดยไม่ต้องมีฐานข้อมูล ส่วน E2E เดิมตรวจการเชื่อม NestJS และ PostgreSQL จริง พร้อมเพิ่ม test ของ transaction เพื่อพิสูจน์ rollback เมื่อเกิดข้อผิดพลาด การปรับนี้ไม่ต้องเปลี่ยน API, schema ฐานข้อมูล, กฎเกม หรือ Frontend
 
 ### API
 

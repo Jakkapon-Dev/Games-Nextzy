@@ -116,4 +116,24 @@ describe('POST /api/me/reset (e2e)', () => {
     const player = await prisma.player.findUniqueOrThrow({ where: { id: playerId } });
     expect(player.progressVersion).toBe(2);
   });
+
+  it('serializes a reset against concurrent play and claim without leaving stale records', async () => {
+    await prisma.player.update({ where: { id: playerId }, data: { totalScore: 9500 } });
+    const [resetResponse, playResponse, claimResponse] = await Promise.all([
+      reset(),
+      play(1),
+      claim('checkpoint-7500', 1),
+    ]);
+    expect(resetResponse.status).toBe(200);
+    for (const response of [playResponse, claimResponse]) {
+      expect([200, 409]).toContain(response.status);
+      if (response.status === 409) expect(response.body.code).toBe('PROGRESS_VERSION_MISMATCH');
+    }
+    expect(await prisma.player.findUniqueOrThrow({ where: { id: playerId } })).toMatchObject({
+      totalScore: 0,
+      progressVersion: 2,
+    });
+    expect(await prisma.gameRound.count({ where: { playerId } })).toBe(0);
+    expect(await prisma.rewardClaim.count({ where: { playerId } })).toBe(0);
+  });
 });

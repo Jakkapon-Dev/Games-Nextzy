@@ -8,22 +8,26 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { type Paginated, PaginationQueryDto } from '../common/http/pagination.dto.js';
-import type { Player } from '../generated/prisma/client.js';
-import { CurrentPlayer, SessionGuard } from '../session/session.guard.js';
+import { type Paginated, PaginationQueryDto } from '../../common/http/pagination.dto.js';
+import type { Player } from '../../player/domain/player.js';
+import { CurrentPlayer, SessionGuard } from '../../session/presentation/session.guard.js';
 import type { GameHistoryItemDto, PlayedRoundDto } from './dto/game-round.dto.js';
 import { PlayGameRoundDto } from './dto/play-game-round.dto.js';
-import { GameService } from './game.service.js';
+import { PlayGameRound } from '../application/play-game-round.js';
+import { GetGameHistory } from '../application/get-game-history.js';
 
 @Controller('game-rounds')
 @UseGuards(SessionGuard)
 export class GameController {
-  constructor(private readonly game: GameService) {}
+  constructor(
+    private readonly playRound: PlayGameRound,
+    private readonly getHistory: GetGameHistory,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.OK)
   play(@CurrentPlayer() player: Player, @Body() body: PlayGameRoundDto): Promise<PlayedRoundDto> {
-    return this.game.play(player.id, body);
+    return this.playRound.execute(player.id, body);
   }
 
   @Get()
@@ -31,6 +35,6 @@ export class GameController {
     @CurrentPlayer() player: Player,
     @Query() query: PaginationQueryDto,
   ): Promise<Paginated<GameHistoryItemDto>> {
-    return this.game.history(player, query);
+    return this.getHistory.execute(player, query);
   }
 }

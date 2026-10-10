@@ -5,7 +5,7 @@ import {
   PayloadTooLargeException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { DomainError } from '../errors/domain-error.js';
+import { DomainError } from '../../shared/domain/domain-error.js';
 import { RequestValidationError } from '../errors/request-validation.error.js';
 import { toErrorResponse } from './error-response.js';
 

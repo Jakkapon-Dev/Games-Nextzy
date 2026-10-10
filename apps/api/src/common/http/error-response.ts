@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { DomainError, DomainErrorCode } from '../errors/domain-error.js';
+import { DomainError, DomainErrorCode } from '../../shared/domain/domain-error.js';
 import { RequestValidationError } from '../errors/request-validation.error.js';
 
 export interface ErrorBody {

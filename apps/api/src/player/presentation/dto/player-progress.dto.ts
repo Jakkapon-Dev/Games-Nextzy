@@ -1,4 +1,4 @@
-import type { CheckpointStatus } from '../../game/domain/game-rules.js';
+import type { CheckpointStatus } from '../../../game/domain/game-rules.js';
 
 export interface CheckpointDto {
   id: string;

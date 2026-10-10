@@ -2,7 +2,10 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { PrismaService } from './../src/prisma/prisma.service.js';
-import { generateSessionToken, hashSessionToken } from './../src/session/session-token.js';
+import {
+  generateSessionToken,
+  hashSessionToken,
+} from '../src/session/infrastructure/session-token.js';
 import { createTestApp } from './support/create-test-app.js';
 import { resetDatabase } from './support/reset-database.js';
 

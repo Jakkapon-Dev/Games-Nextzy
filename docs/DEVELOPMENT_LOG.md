@@ -83,6 +83,13 @@ Real problems I ran into while building this project, what caused them, and how 
 - **Supabase Data API disabled:** the tables live in the `public` schema, so leaving the Data API on would expose them through Supabase's REST API.
 - **Cookies through a proxy:** Vercel rewrites `/api/*` to Render, so the cookie belongs to the Vercel domain and stays first-party. I checked on production that it has `HttpOnly; Secure; SameSite=Lax`.
 
+### 13. Implementation did not yet match the planned architecture
+
+- **Problem:** The architecture review found that game rules were pure functions, but the feature services still imported Prisma and HTTP DTOs. The implementation therefore did not satisfy the planned dependency separation.
+- **Fix:** Extract plain TypeScript use cases and application-owned ports. Move controllers/DTOs into presentation, persistence and crypto implementations into infrastructure, and compose them in NestJS modules. Session resolution now returns an application-owned player snapshot instead of a Prisma type.
+- **Risk and trade-off:** Splitting writes into independent repositories could break atomicity. A shared progress unit-of-work port keeps play, claim, and reset inside one locked-player transaction. It contains the small set of operations these three workflows actually need, rather than a generic repository framework.
+- **Verification:** Preserve the existing HTTP E2E cases for concurrency, caps, idempotency, reward errors, and reset. Add database-independent use-case tests, dependency-boundary tests, and PostgreSQL tests that force failed writes to prove rollback of rounds and cleared histories. Also test a reset racing with play and claim, and the health-probe failure response. No schema migration or frontend change is needed.
+
 ## Decisions worth noting
 
 - **The server decides the score.** The web app requests a round first and then animates towards the result, so the browser cannot choose the outcome.
