@@ -58,6 +58,15 @@ export function toErrorResponse(exception: unknown): ErrorResponse {
         },
       };
     }
+    if (status === HttpStatus.SERVICE_UNAVAILABLE) {
+      return {
+        status,
+        body: {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'ระบบยังไม่พร้อมให้บริการ กรุณาลองใหม่อีกครั้ง',
+        },
+      };
+    }
   }
 
   return INTERNAL_ERROR;
