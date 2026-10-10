@@ -3,6 +3,7 @@ import {
   HttpStatus,
   NotFoundException,
   PayloadTooLargeException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { DomainError } from '../errors/domain-error.js';
 import { RequestValidationError } from '../errors/request-validation.error.js';
@@ -53,6 +54,13 @@ describe('toErrorResponse', () => {
     const result = toErrorResponse(new PayloadTooLargeException());
     expect(result.status).toBe(HttpStatus.PAYLOAD_TOO_LARGE);
     expect(result.body.code).toBe('PAYLOAD_TOO_LARGE');
+  });
+
+  it('maps 503 to SERVICE_UNAVAILABLE without internal details', () => {
+    const result = toErrorResponse(new ServiceUnavailableException('database down'));
+    expect(result.status).toBe(503);
+    expect(result.body.code).toBe('SERVICE_UNAVAILABLE');
+    expect(result.body.message).not.toContain('database');
   });
 
   it('hides details of unexpected errors behind 500 INTERNAL_ERROR', () => {
