@@ -1,11 +1,20 @@
 'use client';
 
+import { useState } from 'react';
+import { RewardButtons } from '@/components/home/reward-buttons';
 import { ScoreCard } from '@/components/home/score-card';
-import { useProgress } from '@/lib/queries';
+import { ShareButton } from '@/components/home/share-button';
+import { CrownCoin } from '@/components/icons/crown-coin';
+import { Modal } from '@/components/ui/modal';
+import { PrimaryButton } from '@/components/ui/primary-button';
+import type { ClaimedReward } from '@/lib/api/types';
+import { useClaimReward, useProgress } from '@/lib/queries';
 
 /** Home page content that depends on the player's data. */
 export function HomeScreen() {
   const { data, error, isError, retry } = useProgress();
+  const claim = useClaimReward();
+  const [claimed, setClaimed] = useState<ClaimedReward | null>(null);
 
   return (
     <div className="bg-header px-4 py-4">
@@ -17,7 +26,26 @@ export function HomeScreen() {
           </button>
         </div>
       ) : data ? (
-        <ScoreCard progress={data} />
+        <ScoreCard
+          progress={data}
+          shareAction={<ShareButton totalScore={data.totalScore} maxScore={data.maxScore} />}
+        >
+          <RewardButtons
+            checkpoints={data.checkpoints}
+            pendingId={claim.isPending ? claim.variables?.checkpointId : undefined}
+            onClaim={(checkpoint) =>
+              claim.mutate(
+                { checkpointId: checkpoint.id, progressVersion: data.progressVersion },
+                { onSuccess: setClaimed },
+              )
+            }
+          />
+          {claim.isError && (
+            <p role="alert" className="mt-2 text-right text-xs text-brand-red">
+              {claim.error.message}
+            </p>
+          )}
+        </ScoreCard>
       ) : (
         <div
           aria-busy="true"
@@ -25,6 +53,18 @@ export function HomeScreen() {
           className="h-[200px] animate-pulse rounded-card bg-white/70"
         />
       )}
+
+      <Modal
+        open={claimed !== null}
+        onClose={() => setClaimed(null)}
+        icon={<CrownCoin size={78} />}
+        title="ยินดีด้วย"
+        description={claimed ? `คุณได้รับ${claimed.rewardName}` : undefined}
+      >
+        <PrimaryButton size="medium" onClick={() => setClaimed(null)}>
+          ปิด
+        </PrimaryButton>
+      </Modal>
     </div>
   );
 }

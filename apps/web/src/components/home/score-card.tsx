@@ -20,7 +20,7 @@ export function ScoreCard({
       aria-labelledby="score-card-title"
       className="relative overflow-hidden rounded-card border border-black bg-white px-3 pt-1 pb-4"
     >
-      {shareAction && <div className="absolute top-0 left-0">{shareAction}</div>}
+      {shareAction && <div className="absolute top-5 left-0">{shareAction}</div>}
 
       <p className="text-center text-[10px] leading-4 text-[#d4d4d4]">“ชื่อ - นามสกุล”</p>
 

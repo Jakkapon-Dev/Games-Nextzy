@@ -1,8 +1,5 @@
-import { useId } from 'react';
-
 /** Gold coin with a crown, redrawn as SVG from the design's raster asset. */
 export function CrownCoin({ size = 30, className }: { size?: number; className?: string }) {
-  const id = useId();
   return (
     <svg
       width={size}
@@ -12,27 +9,17 @@ export function CrownCoin({ size = 30, className }: { size?: number; className?:
       aria-hidden="true"
       focusable="false"
     >
-      <defs>
-        <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFD54A" />
-          <stop offset="1" stopColor="#F59E0B" />
-        </linearGradient>
-        <linearGradient id={`${id}-face`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFB300" />
-          <stop offset="1" stopColor="#F59300" />
-        </linearGradient>
-      </defs>
-      <circle cx="32" cy="32" r="31" fill={`url(#${id}-rim)`} />
-      <circle cx="32" cy="32" r="24" fill={`url(#${id}-face)`} />
-      <circle cx="32" cy="32" r="24" fill="none" stroke="#FFC83D" strokeWidth="2" />
+      <circle cx="32" cy="32" r="32" fill="#FFB800" />
       <path
-        d="M19 40 L17 25 L25.5 31 L32 21 L38.5 31 L47 25 L45 40 Z"
-        fill="#FFE07A"
-        stroke="#FFF2B8"
-        strokeWidth="1"
-        strokeLinejoin="round"
+        d="M30 3.5a28.5 28.5 0 0 1 9 1.6M45 8a28.5 28.5 0 0 1 3.4 3.6M5.5 33a28.5 28.5 0 0 0 16 25M58.5 32a28.5 28.5 0 0 1-1.8 9.8"
+        fill="none"
+        stroke="#FFD43B"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
-      <rect x="19" y="41.5" width="26" height="4" rx="1.5" fill="#FFE07A" />
+      <circle cx="32" cy="32" r="25" fill="#F79400" />
+      <circle cx="32" cy="32" r="21" fill="#FFCC33" />
+      <path d="M17.8 25.3 L26.2 29 L32 20.6 L37.8 29 L46.2 25.3 L43 42.5 H21 Z" fill="#F79400" />
     </svg>
   );
 }
