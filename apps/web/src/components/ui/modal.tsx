@@ -52,7 +52,7 @@ export function Modal({
         <button
           type="button"
           onClick={onClose}
-          aria-label="ปิด"
+          aria-label="ปิดหน้าต่าง"
           className="absolute top-3 right-3 rounded-full p-1 text-gray hover:text-text focus-visible:outline-2 focus-visible:outline-gray"
         >
           <CloseIcon />
