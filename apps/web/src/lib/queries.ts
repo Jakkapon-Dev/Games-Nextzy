@@ -3,6 +3,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from './api/api-error';
 import { api } from './api/client';
+import { shouldRetry } from './api/retry';
 import type { Page } from './api/types';
 
 export const HISTORY_PAGE_SIZE = 20;
@@ -117,5 +118,23 @@ export function useResetProgress() {
         return queryClient.invalidateQueries({ queryKey: queryKeys.progress });
       }
     },
+  });
+}
+
+/**
+ * Plays one round. Failed attempts are retried with the same request id, so the API never adds
+ * points twice. The progress and game history are reloaded afterwards.
+ */
+export function usePlayRound() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ requestId, progressVersion }: { requestId: string; progressVersion: number }) =>
+      api.playRound(requestId, progressVersion),
+    retry: (failureCount, error: Error) => shouldRetry(failureCount, error),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.progress }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.gameHistory }),
+      ]),
   });
 }

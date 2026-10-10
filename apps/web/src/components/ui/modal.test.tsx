@@ -7,7 +7,7 @@ import { Modal } from './modal';
 function renderModal(open: boolean, onClose = vi.fn()) {
   render(
     <Modal open={open} onClose={onClose} title="ยินดีด้วย" description="คุณได้รับรางวัล A">
-      <button type="button">ปิดหน้าต่าง</button>
+      <button type="button">ตกลง</button>
     </Modal>,
   );
   return onClose;
@@ -29,7 +29,7 @@ describe('Modal', () => {
 
   it('closes with the close button', async () => {
     const onClose = renderModal(true);
-    await userEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    await userEvent.click(screen.getByRole('button', { name: 'ปิดหน้าต่าง' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
