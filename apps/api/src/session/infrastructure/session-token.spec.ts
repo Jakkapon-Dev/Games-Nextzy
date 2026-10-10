@@ -1,4 +1,4 @@
-import { sessionCookieOptions, SESSION_TTL_MS } from './session-cookie.js';
+import { sessionCookieOptions, SESSION_TTL_MS } from '../presentation/session-cookie.js';
 import { generateSessionToken, hashSessionToken } from './session-token.js';
 
 describe('session token', () => {
