@@ -12,6 +12,7 @@ import { ELIMINATION_INTERVAL_MS, eliminationOrder, RESULT_PAUSE_MS } from '@/li
 import { usePlayRound, useProgress } from '@/lib/queries';
 
 type Phase = 'ready' | 'playing' | 'finished';
+type RoundRequest = { requestId: string; progressVersion: number };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,8 +29,8 @@ export function GameScreen() {
   const [result, setResult] = useState<PlayedRound | null>(null);
   /** Score shown in the title; frozen while a round is animating. */
   const [shownTotal, setShownTotal] = useState<number | null>(null);
-  /** Request id of a round that failed and may be retried without adding points twice. */
-  const [failedRequestId, setFailedRequestId] = useState<string | null>(null);
+  /** Preserve the whole failed request; a reset must not turn its retry into a new round. */
+  const [failedRequest, setFailedRequest] = useState<RoundRequest | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const mounted = useRef(true);
 
@@ -50,22 +51,26 @@ export function GameScreen() {
     );
   }
 
-  async function start(requestId: string = crypto.randomUUID()) {
+  async function start(request?: RoundRequest) {
     if (!data || phase !== 'ready') return;
-    setFailedRequestId(null);
+    const roundRequest = request ?? {
+      requestId: crypto.randomUUID(),
+      progressVersion: data.progressVersion,
+    };
+    setFailedRequest(null);
     setShownTotal(data.totalScore);
     setPhase('playing');
     setAnnouncement('กำลังสุ่มคะแนน');
 
     let round: PlayedRound;
     try {
-      round = await play.mutateAsync({ requestId, progressVersion: data.progressVersion });
+      round = await play.mutateAsync(roundRequest);
     } catch (failure) {
       if (!mounted.current) return;
       // A stale progress version (e.g. reset in another tab) needs a new request; the progress
-      // is reloaded automatically. Other failures can be retried with the same request id.
+      // is reloaded automatically. Other failures retry the same id AND progress version.
       const stale = failure instanceof ApiError && failure.code === 'PROGRESS_VERSION_MISMATCH';
-      setFailedRequestId(stale ? null : requestId);
+      setFailedRequest(stale ? null : roundRequest);
       setPhase('ready');
       setShownTotal(null);
       setAnnouncement('');
@@ -116,7 +121,7 @@ export function GameScreen() {
       </div>
 
       <div className="mt-[70px] flex min-h-[38px] flex-col items-center gap-3 px-4">
-        {phase !== 'finished' && !failedRequestId && (
+        {phase !== 'finished' && !failedRequest && (
           <button
             type="button"
             disabled={!data || phase === 'playing'}
@@ -128,20 +133,20 @@ export function GameScreen() {
           </button>
         )}
 
-        {failedRequestId && phase === 'ready' && (
+        {failedRequest && phase === 'ready' && (
           <ErrorState
             message={play.error?.message ?? 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง'}
-            onRetry={() => void start(failedRequestId)}
+            onRetry={() => void start(failedRequest)}
           />
         )}
 
-        {play.isError && !failedRequestId && phase === 'ready' && (
+        {play.isError && !failedRequest && phase === 'ready' && (
           <p role="alert" className="text-center text-sm text-brand-red">
             {play.error.message}
           </p>
         )}
 
-        {isFull && phase === 'ready' && !failedRequestId && (
+        {isFull && phase === 'ready' && !failedRequest && (
           <p className="text-center text-sm text-text-secondary">
             คะแนนเต็มแล้ว เล่นต่อได้แต่จะไม่ได้คะแนนเพิ่ม
           </p>

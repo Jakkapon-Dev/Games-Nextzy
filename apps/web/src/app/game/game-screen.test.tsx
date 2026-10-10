@@ -29,8 +29,10 @@ const play = vi.hoisted(() => ({
   error: null as Error | null,
 }));
 
+const progressQuery = vi.hoisted(() => ({ data: undefined as PlayerProgress | undefined }));
+
 vi.mock('@/lib/queries', () => ({
-  useProgress: () => ({ data: progress, error: null, isError: false, retry: vi.fn() }),
+  useProgress: () => ({ data: progressQuery.data, error: null, isError: false, retry: vi.fn() }),
   usePlayRound: () => play,
 }));
 
@@ -44,6 +46,7 @@ function failWith(error: Error) {
 
 describe('GameScreen', () => {
   beforeEach(() => {
+    progressQuery.data = { ...progress };
     play.mutateAsync.mockReset();
     play.isError = false;
     play.error = null;
@@ -106,5 +109,37 @@ describe('GameScreen', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('ข้อมูลการสะสมเปลี่ยนแล้ว');
     expect(screen.queryByRole('button', { name: 'ลองใหม่' })).toBeNull();
     expect(screen.getByRole('button', { name: 'สุ่มคะแนน' })).toBeEnabled();
+  });
+
+  it('keeps the original version on retry after another tab resets, then starts a fresh round', async () => {
+    failWith(new ApiError(0, 'NETWORK_ERROR', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'));
+    failWith(new ApiError(409, 'PROGRESS_VERSION_MISMATCH', 'ข้อมูลการสะสมเปลี่ยนแล้ว'));
+    play.mutateAsync.mockResolvedValueOnce({
+      ...round,
+      pickedScore: 300,
+      creditedScore: 300,
+      totalScore: 300,
+      progressVersion: 4,
+    });
+    const view = render(<GameScreen />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'สุ่มคะแนน' }));
+    await screen.findByRole('button', { name: 'ลองใหม่' });
+    const originalRequest = { ...play.mutateAsync.mock.calls[0][0] };
+
+    // Progress is refreshed after a reset in another tab while the failed round is pending.
+    progressQuery.data = { ...progress, totalScore: 0, progressVersion: 4 };
+    view.rerender(<GameScreen />);
+    await userEvent.click(screen.getByRole('button', { name: 'ลองใหม่' }));
+
+    expect(play.mutateAsync.mock.calls[1][0]).toEqual(originalRequest);
+    expect(await screen.findByRole('alert')).toHaveTextContent('ข้อมูลการสะสมเปลี่ยนแล้ว');
+    expect(screen.queryByRole('button', { name: 'ลองใหม่' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'สุ่มคะแนน' }));
+    await screen.findByRole('dialog', { name: 'ได้รับ' });
+    const freshRequest = play.mutateAsync.mock.calls[2][0];
+    expect(freshRequest.progressVersion).toBe(4);
+    expect(freshRequest.requestId).not.toBe(originalRequest.requestId);
   });
 });
