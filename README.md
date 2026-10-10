@@ -33,14 +33,14 @@ All screenshots were taken at 375px on the deployed site.
 
 ## Tech stack
 
-| Area     | Tools                                                                              |
-| -------- | ---------------------------------------------------------------------------------- |
-| Web      | Next.js 16 (App Router), React 19, Tailwind CSS 4, TanStack Query 5                |
-| API      | NestJS 12, Prisma 7 with the `pg` driver adapter, class-validator                  |
-| Database | PostgreSQL (Supabase in production)                                                |
-| Tests    | Vitest, Testing Library, Supertest against a real PostgreSQL database              |
-| Tooling  | npm workspaces, TypeScript 6, ESLint (web), oxlint (API), Prettier, GitHub Actions |
-| Hosting  | Vercel (web), Render (API), Supabase (database), all in Singapore                  |
+| Area     | Tools                                                                              | Why                                                                                                                                                                            |
+| -------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web      | Next.js 16 (App Router), React 19, Tailwind CSS 4, TanStack Query 5                | Rewrites keep the API on the same origin, `next/font` and static rendering help mobile performance, and TanStack Query handles caching, retries and refetching after mutations |
+| API      | NestJS 12, Prisma 7 with the `pg` driver adapter, class-validator                  | Modules and dependency injection fit the layered design; Prisma gives typed queries and versioned migrations                                                                   |
+| Database | PostgreSQL (Supabase in production)                                                | Transactions, row locks, unique keys and CHECK constraints protect the score and claims                                                                                        |
+| Tests    | Vitest, Testing Library, Supertest against a real PostgreSQL database              | Locking, constraints and time zones only show up against a real database                                                                                                       |
+| Tooling  | npm workspaces, TypeScript 6, ESLint (web), oxlint (API), Prettier, GitHub Actions | One repository, one install and one CI run for both apps                                                                                                                       |
+| Hosting  | Vercel (web), Render (API), Supabase (database), all in Singapore                  | Free plans, close to users in Thailand and to each other                                                                                                                       |
 
 ## Architecture
 
@@ -206,4 +206,5 @@ The only accessibility finding is low contrast on some colours taken from the de
 
 - The free API sleeps when idle, so the first request after that is slow.
 - A player is tied to one browser. Clearing cookies starts a new player.
+- “ชื่อ - นามสกุล” (name) on the score card is placeholder text from the design. There is no sign-up, so no real name is stored.
 - "แชร์คะแนน" (share score) uses the Web Share API when the browser supports it, and otherwise copies the score text with the link.
