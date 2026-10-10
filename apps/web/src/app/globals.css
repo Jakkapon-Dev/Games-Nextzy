@@ -1,16 +1,50 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Design tokens taken from the Figma file. Components use these names (e.g. bg-brand-yellow)
+ * instead of raw values so the design can be adjusted in one place.
+ */
+@theme {
+  --font-sans: var(--font-kanit), ui-sans-serif, system-ui, sans-serif;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-ink: #212b36;
+  --color-text: #333333;
+  --color-text-secondary: #565656;
+  --color-text-muted: #a3a3a3;
+  --color-text-subtle: #8a8b8c;
+  --color-gray: #979797;
+  --color-divider: #eeeeee;
+  --color-surface-muted: #dddddd;
+  --color-canvas: #f4f4f5;
+
+  --color-brand-red: #ff2428;
+  --color-brand-yellow: #ffc124;
+  --color-brand-blue: #1e00ff;
+  --color-accent-red: #ff383c;
+  --color-share: #b63335;
+
+  --color-reward-claimable: #ff0004;
+  --color-reward-claimed: #ff7b7b;
+  --color-reward-locked: #dddddd;
+
+  --color-progress-track: #dfe3e8;
+  --color-progress-from: #ff8158;
+  --color-progress-to: #ff8902;
+  --color-progress-dot-from: #ff0004;
+  --color-progress-dot-to: #fc8625;
+
+  --color-option: #1ae3d6;
+  --color-option-win: #0ef76f;
+  --color-option-text: #09862e;
+
+  --radius-card: 16px;
+  --radius-modal: 20px;
+  --radius-chip: 12.5px;
+
+  --shadow-footer: 0 3px 5px rgb(14 22 44 / 0.2), 0 1px 18px rgb(14 22 44 / 0.12);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-canvas);
+  color: var(--color-text);
 }
