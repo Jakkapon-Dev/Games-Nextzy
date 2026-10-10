@@ -83,6 +83,13 @@
 - **ปิด Supabase Data API:** ตารางอยู่ใน schema `public` ถ้าเปิด Data API ไว้ ตารางจะถูกเปิดผ่าน REST API ของ Supabase
 - **Cookie ผ่าน proxy:** Vercel rewrite `/api/*` ไปที่ Render cookie จึงเป็นของ domain Vercel และเป็น first-party ตรวจบน production แล้วว่ามี `HttpOnly; Secure; SameSite=Lax`
 
+### 13. โค้ดยังไม่ตรงกับสถาปัตยกรรมที่วางไว้
+
+- **ปัญหา:** เมื่อตรวจสถาปัตยกรรมพบว่ากฎเกมเป็น pure function แล้ว แต่ service ของฟีเจอร์ยัง import Prisma และ HTTP DTO จึงยังไม่ตรงกับการแยก dependency ที่วางแผนไว้
+- **วิธีแก้:** แยก use case เป็น TypeScript ธรรมดาและให้ Application เป็นเจ้าของ port ย้าย controller/DTO ไป Presentation และ persistence/crypto implementation ไป Infrastructure แล้วเชื่อมผ่าน NestJS module ส่วนการตรวจ session คืน player snapshot ของชั้นภายในแทน Prisma type
+- **ความเสี่ยงและ trade-off:** การแยก write คนละ repository อาจทำให้ transaction ไม่ครอบทั้งขั้นตอน จึงใช้ progress unit-of-work port ร่วมกัน ให้เล่น รับรางวัล และ reset ใช้ transaction เดียวพร้อมล็อกผู้เล่น interface มีเฉพาะ operations ที่สาม workflow ต้องใช้ ไม่สร้าง generic repository framework
+- **การตรวจสอบ:** คง HTTP E2E เดิมเรื่อง concurrency, เพดานคะแนน, idempotency, error รางวัล และ reset เพิ่ม use-case tests ที่ไม่ใช้ฐานข้อมูล, dependency-boundary tests และ PostgreSQL tests ที่บังคับ write ให้ล้มเหลวเพื่อพิสูจน์ rollback ของรอบเกมและประวัติที่ถูกล้าง พร้อมทดสอบ reset แข่งกับเล่น/รับรางวัล และ response เมื่อ health probe ล้มเหลว ไม่ต้องเปลี่ยน schema หรือ Frontend
+
 ## การตัดสินใจที่ควรรู้
 
 - **เซิร์ฟเวอร์เป็นผู้ตัดสินคะแนน:** หน้าเว็บขอผลจาก API ก่อน แล้วค่อยเล่น animation ไปหาผลนั้น เบราว์เซอร์จึงเลือกผลเองไม่ได้

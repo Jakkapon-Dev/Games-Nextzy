@@ -63,6 +63,7 @@ apps/
       reward/          checkpoint claims and reward history
       health/          health check
       common/          error format, validation, pagination
+      shared/          domain records/errors, transaction port and Prisma adapter
     test/              end-to-end tests against a test database
   web/                 Next.js app
     src/app/           home and /game pages
@@ -71,6 +72,30 @@ apps/
 docs/                  screenshots and development log
 render.yaml            Render blueprint for the API
 ```
+
+### Backend: Clean Architecture
+
+Features separate business policy from HTTP and persistence. Domain and application code do not import NestJS, Prisma, Express, or presentation DTOs; `src/architecture.spec.ts` checks these dependency boundaries during the normal test run.
+
+```text
+game/ (player/, reward/ and session/ follow the same layering)
+  domain/          pure game rules and random-source interface
+  application/     PlayGameRound, GetGameHistory and repository port
+  infrastructure/  Prisma history repository and cryptographic random source
+  presentation/    controller and HTTP DTOs
+  game.module.ts   composition root: wires adapters into use cases
+
+HTTP controller → application use case → domain rules
+                          ↓ repository / transaction interface
+                   infrastructure adapter → PostgreSQL
+```
+
+The runtime call into an adapter is made through an interface owned by the inner layer, not an import of Prisma. NestJS module factories construct plain TypeScript use cases with concrete adapters. Interfaces live in application when they describe a use-case need; domain holds framework-independent models and rules. A feature without business rules (such as health) does not need an artificial domain folder.
+
+- **Use cases:** initialize/resolve session, get progress, play round, claim reward, get game/reward history, reset progress, and check health. Controllers validate HTTP input and map transport concerns such as cookies and status codes.
+- **Atomic mutations:** `ProgressUnitOfWork.withLockedPlayer` covers the entire play, claim, or reset operation. Its Prisma adapter starts one transaction, locks the player using `SELECT … FOR UPDATE`, and exposes only transaction-scoped operations. Use cases decide the score, eligibility, reset version, and validation order; the adapter handles SQL and translates duplicate-claim `P2002` errors. Separate repositories never open independent write transactions within a use case.
+- **Read queries:** feature-specific repository ports supply records and pagination; use cases calculate checkpoint status and transform timestamps into API results. Prisma-generated types stay outside the inner layers.
+- **Verification:** use-case tests use fake ports, existing HTTP E2E tests exercise the real NestJS wiring and PostgreSQL, and additional transaction tests verify rollback on failures. No API, database schema, game rules, or frontend changes are required by this refactor.
 
 ### API
 
