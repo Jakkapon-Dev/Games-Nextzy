@@ -10,7 +10,14 @@ import { PrismaClient } from '../generated/prisma/client.js';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {
   constructor() {
-    super({ adapter: new PrismaPg({ connectionString: readEnv().databaseUrl }) });
+    super({
+      adapter: new PrismaPg({
+        connectionString: readEnv().databaseUrl,
+        // Prisma reads and writes timestamps as UTC. Pin the session time zone so a database
+        // server configured for another zone (e.g. Asia/Bangkok) does not shift stored values.
+        options: '-c TimeZone=UTC',
+      }),
+    });
   }
 
   async onModuleDestroy(): Promise<void> {
