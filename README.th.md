@@ -33,14 +33,14 @@
 
 ## เทคโนโลยีที่ใช้
 
-| ส่วน       | เครื่องมือ                                                                         |
-| ---------- | ---------------------------------------------------------------------------------- |
-| Web        | Next.js 16 (App Router), React 19, Tailwind CSS 4, TanStack Query 5                |
-| API        | NestJS 12, Prisma 7 กับ driver adapter `pg`, class-validator                       |
-| ฐานข้อมูล  | PostgreSQL (production ใช้ Supabase)                                               |
-| การทดสอบ   | Vitest, Testing Library, Supertest กับฐานข้อมูล PostgreSQL จริง                    |
-| เครื่องมือ | npm workspaces, TypeScript 6, ESLint (web), oxlint (API), Prettier, GitHub Actions |
-| Hosting    | Vercel (web), Render (API), Supabase (ฐานข้อมูล) อยู่ที่สิงคโปร์ทั้งหมด            |
+| ส่วน       | เครื่องมือ                                                                         | เหตุผล                                                                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web        | Next.js 16 (App Router), React 19, Tailwind CSS 4, TanStack Query 5                | rewrite ทำให้ API อยู่ origin เดียวกับเว็บ, `next/font` และการ render แบบ static ช่วยความเร็วบนมือถือ, TanStack Query จัดการ cache, retry และโหลดข้อมูลใหม่หลัง mutation |
+| API        | NestJS 12, Prisma 7 กับ driver adapter `pg`, class-validator                       | module และ dependency injection เหมาะกับการแบ่ง layer; Prisma ให้ query ที่มี type และ migration ที่มีเวอร์ชัน                                                           |
+| ฐานข้อมูล  | PostgreSQL (production ใช้ Supabase)                                               | transaction, row lock, unique key และ CHECK constraint ปกป้องคะแนนและการรับรางวัล                                                                                        |
+| การทดสอบ   | Vitest, Testing Library, Supertest กับฐานข้อมูล PostgreSQL จริง                    | ปัญหาเรื่อง lock, constraint และ time zone จะเห็นได้กับฐานข้อมูลจริงเท่านั้น                                                                                             |
+| เครื่องมือ | npm workspaces, TypeScript 6, ESLint (web), oxlint (API), Prettier, GitHub Actions | repository เดียว ติดตั้งครั้งเดียว และ CI รอบเดียวสำหรับทั้งสองแอป                                                                                                       |
+| Hosting    | Vercel (web), Render (API), Supabase (ฐานข้อมูล) อยู่ที่สิงคโปร์ทั้งหมด            | ใช้แพ็กเกจฟรีได้ อยู่ใกล้ผู้ใช้ในไทยและใกล้กันเอง                                                                                                                        |
 
 ## สถาปัตยกรรม
 
@@ -206,4 +206,5 @@ GitHub Actions รัน format, lint, typecheck, unit, e2e และ build ท�
 
 - API แพ็กเกจฟรีจะหลับเมื่อไม่มีคนใช้ คำขอแรกหลังจากนั้นจะช้า
 - ผู้เล่นผูกกับเบราว์เซอร์เดียว ถ้าล้าง cookie จะเริ่มเป็นผู้เล่นใหม่
+- ข้อความ “ชื่อ - นามสกุล” บนการ์ดคะแนนเป็นข้อความตัวอย่างตามดีไซน์ ระบบไม่มีการสมัครสมาชิก จึงไม่ได้เก็บชื่อจริง
 - ปุ่ม "แชร์คะแนน" ใช้ Web Share API ถ้าเบราว์เซอร์รองรับ ถ้าไม่รองรับจะคัดลอกข้อความคะแนนพร้อมลิงก์แทน
