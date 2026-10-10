@@ -1,10 +1,15 @@
-import { ProgressSummary } from './progress-summary';
+import { HistorySection } from '@/components/home/history-section';
+import { PageShell } from '@/components/layout/page-shell';
+import { PrimaryLink } from '@/components/ui/primary-button';
+import { HomeScreen } from './home-screen';
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-[500px] flex-1 px-4 py-8">
-      <h1 className="text-xl font-bold">Nextzy Points Game</h1>
-      <ProgressSummary />
-    </main>
+    <PageShell footer={<PrimaryLink href="/game">ไปเล่นเกม</PrimaryLink>}>
+      <HomeScreen />
+      <div className="pt-6 pb-4">
+        <HistorySection />
+      </div>
+    </PageShell>
   );
 }
