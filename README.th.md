@@ -6,6 +6,7 @@
 
 - **เว็บไซต์:** https://games-nextzy.vercel.app
 - **API:** https://nextzy-api.onrender.com (health check: [`/api/health`](https://nextzy-api.onrender.com/api/health))
+- **เอกสารและทดสอบ API:** [Apidog](https://4cmxd1k8e7.apidog.io/)
 - **บันทึกการพัฒนา:** [docs/DEVELOPMENT_LOG.th.md](docs/DEVELOPMENT_LOG.th.md)
 
 > API ใช้แพ็กเกจฟรีของ Render ถ้าไม่มีคนใช้ 15 นาทีเซิร์ฟเวอร์จะหลับ คำขอแรกหลังจากนั้นอาจต้องรอประมาณ 1 นาที
@@ -72,6 +73,8 @@ render.yaml            Render blueprint ของ API
 ```
 
 ### API
+
+[เอกสาร Apidog สาธารณะ](https://4cmxd1k8e7.apidog.io/) มีครบทั้ง 8 endpoint พร้อม schema ของ request และ response และปุ่ม **Try it** ที่เชื่อมต่อ production ให้เรียก `POST /api/session` ก่อน และเก็บ session cookie ไว้เมื่อทดสอบ endpoint ของผู้เล่น ส่วน `GET /api/health` ไม่ต้องมี session การ Reset จะล้างคะแนนและประวัติของผู้เล่นปัจจุบัน จึงควรใช้ session แยกสำหรับทดสอบ
 
 ทุก endpoint อยู่ใต้ `/api` error ใช้รูปแบบ `{ "code": "...", "message": "..." }` เสมอ โดย message เป็นภาษาไทยที่หน้าเว็บแสดงให้ผู้เล่นเห็นได้เลย
 

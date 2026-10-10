@@ -6,6 +6,7 @@ A small points game built as a full-stack take-home assignment. Players draw a r
 
 - **Live site:** https://games-nextzy.vercel.app
 - **API:** https://nextzy-api.onrender.com (health check: [`/api/health`](https://nextzy-api.onrender.com/api/health))
+- **API documentation and testing:** [Apidog](https://4cmxd1k8e7.apidog.io/)
 - **Development log:** [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md)
 
 > The API runs on Render's free plan. It sleeps after 15 minutes without traffic, so the first request after that can take about a minute.
@@ -72,6 +73,8 @@ render.yaml            Render blueprint for the API
 ```
 
 ### API
+
+The [public Apidog documentation](https://4cmxd1k8e7.apidog.io/) includes all eight endpoints, request and response schemas, and a **Try it** panel connected to production. Call `POST /api/session` first and retain its session cookie when testing player endpoints. `GET /api/health` does not require a session. Reset deletes the current player's score and history, so use a separate test session.
 
 All endpoints are under `/api`. Errors always use `{ "code": "...", "message": "..." }`, with Thai messages that the web app shows to the player.
 
