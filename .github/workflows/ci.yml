@@ -24,6 +24,9 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: nextzy_test
+          # Non-UTC server time zone so tests catch time zone handling bugs.
+          TZ: Asia/Bangkok
+          PGTZ: Asia/Bangkok
         ports:
           - 5432:5432
         options: >-
@@ -58,6 +61,11 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      - name: Check database time zone
+        env:
+          PGPASSWORD: postgres
+        run: test "$(psql -h localhost -U postgres -d nextzy_test -tAc 'SHOW TimeZone')" = "Asia/Bangkok"
 
       - name: API e2e tests
         run: npm run test:e2e -w apps/api
