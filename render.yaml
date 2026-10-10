@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: nextzy-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev --workspace=api && npm run build --workspace=api
+    startCommand: npm run prisma:migrate:deploy --workspace=api && npm run start:prod --workspace=api
+    healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - apps/api/**
+        - package.json
+        - package-lock.json
+        - .nvmrc
+        - render.yaml
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
