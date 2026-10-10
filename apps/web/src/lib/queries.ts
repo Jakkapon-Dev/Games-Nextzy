@@ -97,3 +97,25 @@ export function useRewardHistory() {
     enabled: session.isSuccess,
   });
 }
+
+/**
+ * Resets the player's progress. All player data is reloaded afterwards; a stale progress version
+ * reloads the progress so the player sees the current state.
+ */
+export function useResetProgress() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (progressVersion: number) => api.resetProgress(progressVersion),
+    onSuccess: () =>
+      Promise.all(
+        [queryKeys.progress, queryKeys.gameHistory, queryKeys.rewardHistory].map((queryKey) =>
+          queryClient.invalidateQueries({ queryKey }),
+        ),
+      ),
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        return queryClient.invalidateQueries({ queryKey: queryKeys.progress });
+      }
+    },
+  });
+}
