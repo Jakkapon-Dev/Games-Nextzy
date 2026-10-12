@@ -110,6 +110,7 @@ export function HistorySection() {
   const session = useSession();
   const gameHistory = useGameHistory();
   const rewardHistory = useRewardHistory();
+  const totalRounds = gameHistory.data?.pages[0]?.totalItems;
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -159,7 +160,15 @@ export function HistorySection() {
           hidden={tab.id !== active}
         >
           {tab.id === 'play' ? (
-            <HistoryPanel query={gameHistory} toItem={toPlayItem} tone="play" empty={tab.empty} />
+            <>
+              {/* Hidden at zero rounds so it does not repeat the empty-state message. */}
+              {!!totalRounds && (
+                <p className="px-6 pb-3 text-sm text-text-secondary">
+                  คุณเล่นไปแล้วทั้งหมด {formatScore(totalRounds)} รอบ
+                </p>
+              )}
+              <HistoryPanel query={gameHistory} toItem={toPlayItem} tone="play" empty={tab.empty} />
+            </>
           ) : (
             <HistoryPanel
               query={rewardHistory}

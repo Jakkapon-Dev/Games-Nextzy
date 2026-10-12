@@ -129,7 +129,7 @@ export function GameScreen() {
             onClick={() => void start()}
             className="h-[38px] min-w-[120px] rounded-chip bg-brand-red px-4 text-xl leading-6 font-bold text-white hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:cursor-not-allowed disabled:opacity-30"
           >
-            สุ่มคะแนน
+            {phase === 'playing' ? 'กำลังสุ่มคะแนน…' : 'สุ่มคะแนน'}
           </button>
         )}
 

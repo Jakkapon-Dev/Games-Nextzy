@@ -71,4 +71,24 @@ describe('HistorySection', () => {
     const { container } = render(<HistorySection />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('shows the total number of rounds in the play tab only', async () => {
+    const data = queries.game.data as { pages: { totalItems: number }[] };
+    data.pages[0].totalItems = 1047;
+    const user = userEvent.setup();
+    render(<HistorySection />);
+
+    expect(screen.getByText('คุณเล่นไปแล้วทั้งหมด 1,047 รอบ')).toBeVisible();
+
+    await user.click(screen.getByRole('tab', { name: 'ประวัติรางวัล' }));
+    expect(screen.queryByText(/คุณเล่นไปแล้วทั้งหมด/)).not.toBeVisible();
+  });
+
+  it('hides the round count before the first round', () => {
+    queries.game.data = { pages: [page([])] };
+    render(<HistorySection />);
+
+    expect(screen.getByText('ยังไม่มีประวัติการเล่น ลองไปเล่นเกมดูสิ')).toBeVisible();
+    expect(screen.queryByText(/คุณเล่นไปแล้วทั้งหมด/)).toBeNull();
+  });
 });
