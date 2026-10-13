@@ -96,4 +96,4 @@ Real problems I ran into while building this project, what caused them, and how 
 - **The order of claim errors is fixed:** 404 for an unknown checkpoint, then the version check, then `CHECKPOINT_LOCKED`, then `REWARD_ALREADY_CLAIMED`. Clients get the same answer for the same state.
 - **Reset keeps the session** and increments `progressVersion`, so other open tabs notice and reload instead of writing to old progress.
 - **Near the cap the dialog shows both numbers,** the score drawn and the points credited, so 3,000 never silently becomes 200.
-- **Animation timing:** 0.6 s per eliminated option and 0.4 s before the result, and none with `prefers-reduced-motion`.
+- **Animation timing:** the highlight steps every 0.07 s while the API draws (at least 0.9 s), then slows down over eight steps (0.1 s to 0.95 s), rests 0.35 s on the picked option and waits 0.4 s before the result. None with `prefers-reduced-motion`.

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/api-error';
 import type { PlayedRound, PlayerProgress } from '@/lib/api/types';
+import { SPIN_STEP_MS } from '@/lib/game';
 import { GameScreen } from './game-screen';
 
 const progress: PlayerProgress = {
@@ -151,5 +152,51 @@ describe('GameScreen', () => {
     const freshRequest = play.mutateAsync.mock.calls[2][0];
     expect(freshRequest.progressVersion).toBe(4);
     expect(freshRequest.requestId).not.toBe(originalRequest.requestId);
+  });
+
+  describe('with animation', () => {
+    beforeEach(() => {
+      window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as never;
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const highlighted = () =>
+      screen
+        .getAllByRole('listitem')
+        .filter((option) => option.dataset.state === 'highlight')
+        .map((option) => option.textContent);
+
+    it('spins the highlight while waiting, then slows down and stops on the picked score', async () => {
+      let respond: (value: PlayedRound) => void = () => {};
+      play.mutateAsync.mockReturnValueOnce(new Promise((resolve) => (respond = resolve)));
+      render(<GameScreen />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'สุ่มคะแนน' }));
+      await act(() => vi.advanceTimersByTimeAsync(SPIN_STEP_MS * 5));
+      expect(highlighted()).toHaveLength(1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+
+      respond(round);
+      await act(() => vi.advanceTimersByTimeAsync(10_000));
+
+      expect(screen.getByRole('dialog', { name: 'ได้รับ' })).toBeInTheDocument();
+      expect(highlighted()).toHaveLength(0);
+      expect(screen.getByLabelText('3,000 คะแนน (ได้)')).toBeInTheDocument();
+      expect(screen.getAllByLabelText(/ถูกตัดออก/)).toHaveLength(3);
+    });
+
+    it('stops the highlight at once when the request fails', async () => {
+      failWith(new ApiError(0, 'NETWORK_ERROR', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'));
+      render(<GameScreen />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'สุ่มคะแนน' }));
+      await act(() => vi.advanceTimersByTimeAsync(SPIN_STEP_MS));
+
+      expect(screen.getByRole('button', { name: 'ลองใหม่' })).toBeInTheDocument();
+      expect(highlighted()).toHaveLength(0);
+    });
   });
 });
