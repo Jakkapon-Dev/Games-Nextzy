@@ -2,7 +2,7 @@
 
 [English](DEVELOPMENT_LOG.md) · **ภาษาไทย** · [กลับไปที่ README](../README.th.md)
 
-ปัญหาจริงที่เจอระหว่างทำโปรเจกต์นี้ สาเหตุ และวิธีแก้ ทุกการเปลี่ยนแปลงผ่าน pull request ที่มี CI ตรวจ และดูประวัติได้ใน repository
+ปัญหาหลักที่เจอระหว่างทำโปรเจกต์นี้ สาเหตุ และวิธีแก้ ทุกการเปลี่ยนแปลงผ่าน pull request ที่มี CI ตรวจ และดูประวัติได้ใน repository
 
 ## ลำดับเวลา
 
@@ -20,61 +20,7 @@
 - **วิธีแก้:** การเชื่อมต่อตั้ง `-c TimeZone=UTC` เพิ่ม e2e test ตรวจทั้งสองทิศทาง โดยเทียบกับเวลาที่เขียนด้วย SQL โดยตรง และ CI รัน PostgreSQL ด้วย `TZ=Asia/Bangkok` พร้อมเช็ก time zone ของ session ถ้า bug แบบนี้กลับมา build จะล้มทันที
 - **บทเรียน:** test ที่เขียนและอ่านผ่านชั้นเดียวกันอาจซ่อน bug สองตัวที่หักล้างกันได้ ต้องเทียบกับแหล่งข้อมูลที่เป็นอิสระ
 
-### 2. เครื่องมือสร้างโปรเจกต์เพิ่มไฟล์ที่ไม่ได้ขอ
-
-- **ปัญหา:** หลังรันคำสั่งสร้างโปรเจกต์ `git status` มีไฟล์เกินมา `prisma init` สร้างโฟลเดอร์สำหรับ AI agent และไฟล์ skills lock ส่วน `next dev` สร้าง `AGENTS.md`
-- **วิธีแก้:** ลบไฟล์ที่ถูกสร้างขึ้น และตั้ง `agentRules: false` ใน `next.config.ts` หลังรันเครื่องมือสร้างไฟล์ทุกครั้งจะเช็ก `git status` และไม่รัน `prisma init` อีก
-- **บทเรียน:** อ่านสิ่งที่เครื่องมือสร้างไว้ก่อน commit เสมอ
-
-### 3. คำเตือน deprecation ตอน test รัน migration
-
-- **ปัญหา:** Node แสดง `DEP0190` ระหว่างเตรียม e2e test
-- **สาเหตุ:** โค้ดเรียก `execFileSync` แบบ `shell: true` พร้อมรายการ argument ซึ่ง Node เลิกสนับสนุนแล้ว
-- **วิธีแก้:** เปลี่ยนเป็น `execSync` กับคำสั่งเป็นข้อความเดียว
-
-### 4. `MaxListenersExceededWarning` ใน e2e test
-
-- **ปัญหา:** test ที่ยิงคำขอพร้อมกันหลายตัวด้วย Supertest แสดงคำเตือนเรื่อง listener
-- **สาเหตุ:** ถ้าส่งแอปที่ยังไม่ได้ listen ให้ Supertest มันจะเปิดเซิร์ฟเวอร์ชั่วคราวใหม่ทุกคำขอ
-- **วิธีแก้:** ให้แอปทดสอบ listen ที่พอร์ต 0 ครั้งเดียว แล้วทุกคำขอใช้เซิร์ฟเวอร์เดียวกัน
-
-### 5. `<dialog>` ของเบราว์เซอร์ใน test
-
-- **ปัญหา:** component test ล้ม เพราะ jsdom ไม่มี `HTMLDialogElement.showModal()`
-- **วิธีแก้:** เพิ่ม shim เล็ก ๆ ใน `vitest.setup.ts` ให้ตั้ง attribute `open` และให้เฉพาะไฟล์ที่ต้องใช้ DOM ใช้ jsdom (`// @vitest-environment jsdom`) test อื่นจึงยังเร็วอยู่
-
-### 6. มีปุ่มชื่อ "ปิด" สองปุ่ม
-
-- **ปัญหา:** หน้าต่างรับรางวัลมีทั้งไอคอนปิดและปุ่ม "ปิด" ที่ชื่อสำหรับ accessibility เหมือนกัน screen reader จึงแยกไม่ออก และ `getByRole` เจอสองตัว
-- **วิธีแก้:** ตั้งชื่อไอคอนเป็น "ปิดหน้าต่าง"
-
-### 7. ปุ่มลองใหม่ไม่ได้ลองขั้นตอนที่ล้มเหลว
-
-- **ปัญหา:** ถ้าสร้าง session ไม่สำเร็จ หน้า error จะมีปุ่มลองใหม่ แต่ปุ่มนี้ไปโหลดข้อมูลความคืบหน้าใหม่ ซึ่งยังรอ session อยู่
-- **วิธีแก้:** `useProgress().retry` จะลองสร้าง session ใหม่ถ้าขั้นนั้นล้มเหลว ไม่อย่างนั้นจึงโหลดความคืบหน้าใหม่ และส่วนประวัติจะซ่อนตัวเมื่อไม่มี session แทนที่จะแสดง skeleton ค้างไว้
-- **หมายเหตุ:** ระหว่างทดสอบพบว่าการ retry หยุดเมื่อแท็บอยู่เบื้องหลัง เป็นพฤติกรรมปกติของ TanStack Query ที่หยุด retry ตอนหน้าต่างไม่ได้ focus
-
-### 8. Type ของ retry ใน TanStack Query
-
-- **ปัญหา:** ส่งฟังก์ชัน `shouldRetry` ที่ใช้ร่วมกันให้ `retry` ตรง ๆ แล้ว type ของ error ใน query hooks กลายเป็น `unknown`
-- **วิธีแก้:** ห่อด้วยฟังก์ชันที่ระบุ type `(failureCount, error: Error) => shouldRetry(failureCount, error)` และ retry เฉพาะ network error กับ 5xx ไม่ retry 4xx
-
-### 9. หมายเหตุในประวัติขึ้นบรรทัดใหม่กลางวลีที่ 300px
-
-- **ปัญหา:** ที่ความกว้างแคบสุด หมายเหตุสั้น ๆ ข้างหัวข้อในประวัติ (เช่น คะแนนที่ได้จริงตอนใกล้เต็ม) ถูกตัดขึ้นบรรทัดใหม่กลางวลี
-- **วิธีแก้:** ให้หมายเหตุเป็น `inline-block` กับ `whitespace-nowrap` จึงขึ้นบรรทัดใหม่ทั้งก้อน
-
-### 10. ทำตามดีไซน์โดยไม่ลอกพิกเซล
-
-- **ปัญหา:** ไฟล์ Figma ใช้ตำแหน่งแบบ absolute และไอคอนเหรียญที่วาดครั้งแรกสีกลับด้าน
-- **วิธีแก้:** ใช้ Figma เป็นต้นแบบของเจตนา (layout, ระยะห่าง, สี, ตัวอักษร) แล้วสร้าง layout ด้วย flex และ grid ให้ปรับได้ตั้งแต่ 300px ถึงแท็บเล็ต และวาด SVG เหรียญใหม่ตามค่าในดีไซน์ design token เก็บไว้ใน `@theme` ของ `globals.css`
-
-### 11. Style หายหลังสลับ branch
-
-- **ปัญหา:** หลังสลับระหว่าง branch ที่ CSS ต่างกัน บางครั้ง dev server ส่งหน้าเว็บมาโดยไม่มี style
-- **วิธีแก้:** หยุด dev server แล้วลบ `apps/web/.next` เป็นแค่ปัญหา cache บนเครื่อง
-
-### 12. Deploy บนแพ็กเกจฟรี
+### 2. Deploy บนแพ็กเกจฟรี
 
 - **Render แพ็กเกจฟรีไม่มีขั้น pre-deploy:** blueprint จึงรัน `prisma migrate deploy` ก่อน `node dist/main` ในคำสั่ง start ส่วน `start:prod` ไม่รัน migration การรันบนเครื่องจึงไม่แก้ฐานข้อมูลโดยไม่ตั้งใจ
 - **เครื่องมือ build อยู่ใน devDependencies:** ถ้าตั้ง `NODE_ENV=production` คำสั่ง `npm ci` จะข้ามไป จึงใช้ `npm ci --include=dev --workspace=api` และ flag workspace ยังช่วยข้าม dependency ของเว็บด้วย
@@ -83,7 +29,7 @@
 - **ปิด Supabase Data API:** ตารางอยู่ใน schema `public` ถ้าเปิด Data API ไว้ ตารางจะถูกเปิดผ่าน REST API ของ Supabase
 - **Cookie ผ่าน proxy:** Vercel rewrite `/api/*` ไปที่ Render cookie จึงเป็นของ domain Vercel และเป็น first-party ตรวจบน production แล้วว่ามี `HttpOnly; Secure; SameSite=Lax`
 
-### 13. โค้ดยังไม่ตรงกับสถาปัตยกรรมที่วางไว้
+### 3. โค้ดยังไม่ตรงกับสถาปัตยกรรมที่วางไว้
 
 - **ปัญหา:** เมื่อตรวจสถาปัตยกรรมพบว่ากฎเกมเป็น pure function แล้ว แต่ service ของฟีเจอร์ยัง import Prisma และ HTTP DTO จึงยังไม่ตรงกับการแยก dependency ที่วางแผนไว้
 - **วิธีแก้:** แยก use case เป็น TypeScript ธรรมดาและให้ Application เป็นเจ้าของ port ย้าย controller/DTO ไป Presentation และ persistence/crypto implementation ไป Infrastructure แล้วเชื่อมผ่าน NestJS module ส่วนการตรวจ session คืน player snapshot ของชั้นภายในแทน Prisma type
