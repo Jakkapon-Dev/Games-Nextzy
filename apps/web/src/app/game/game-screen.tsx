@@ -8,7 +8,7 @@ import { PrimaryButton } from '@/components/ui/primary-button';
 import { ApiError } from '@/lib/api/api-error';
 import type { PlayedRound } from '@/lib/api/types';
 import { formatScore } from '@/lib/format';
-import { ELIMINATION_INTERVAL_MS, eliminationOrder, RESULT_PAUSE_MS } from '@/lib/game';
+import { MIN_SPIN_MS, RESULT_PAUSE_MS, SPIN_STEP_MS, spinPath } from '@/lib/game';
 import { usePlayRound, useProgress } from '@/lib/queries';
 
 type Phase = 'ready' | 'playing' | 'finished';
@@ -57,36 +57,70 @@ export function GameScreen() {
       requestId: crypto.randomUUID(),
       progressVersion: data.progressVersion,
     };
+    const options = data.scoreOptions;
+    const animate = !prefersReducedMotion();
     setFailedRequest(null);
+    setStates({});
     setShownTotal(data.totalScore);
     setPhase('playing');
     setAnnouncement('กำลังสุ่มคะแนน');
 
-    let round: PlayedRound;
-    try {
-      round = await play.mutateAsync(roundRequest);
-    } catch (failure) {
+    // The highlight spins while the API draws the score, so the request runs alongside it.
+    const settled = { done: false, failed: false };
+    const outcome = play.mutateAsync(roundRequest).then(
+      (round: PlayedRound) => {
+        settled.done = true;
+        return { round, failure: undefined };
+      },
+      (failure: unknown) => {
+        settled.done = settled.failed = true;
+        return { round: undefined, failure };
+      },
+    );
+
+    let index = -1;
+    const spinStarted = Date.now();
+    while (
+      animate &&
+      !settled.failed &&
+      (!settled.done || Date.now() - spinStarted < MIN_SPIN_MS)
+    ) {
+      index = (index + 1) % options.length;
+      setStates({ [options[index]]: 'highlight' });
+      await sleep(SPIN_STEP_MS);
       if (!mounted.current) return;
+    }
+
+    const { round, failure } = await outcome;
+    if (!mounted.current) return;
+    if (!round) {
       // A stale progress version (e.g. reset in another tab) needs a new request; the progress
       // is reloaded automatically. Other failures retry the same id AND progress version.
       const stale = failure instanceof ApiError && failure.code === 'PROGRESS_VERSION_MISMATCH';
       setFailedRequest(stale ? null : roundRequest);
+      setStates({});
       setPhase('ready');
       setShownTotal(null);
       setAnnouncement('');
       return;
     }
 
-    const interval = prefersReducedMotion() ? 0 : ELIMINATION_INTERVAL_MS;
-    for (const score of eliminationOrder(data.scoreOptions, round.pickedScore)) {
-      await sleep(interval);
-      if (!mounted.current) return;
-      setStates((current) => ({ ...current, [score]: 'eliminated' }));
+    const target = options.indexOf(round.pickedScore);
+    if (animate && target >= 0) {
+      for (const step of spinPath(index, target, options.length)) {
+        setStates({ [options[step.index]]: 'highlight' });
+        await sleep(step.delayMs);
+        if (!mounted.current) return;
+      }
     }
-    setStates((current) => ({ ...current, [round.pickedScore]: 'winner' }));
+    const finalStates: Record<number, OptionState> = {};
+    for (const score of options) {
+      finalStates[score] = score === round.pickedScore ? 'winner' : 'eliminated';
+    }
+    setStates(finalStates);
     setShownTotal(round.totalScore);
     setPhase('finished');
-    await sleep(prefersReducedMotion() ? 0 : RESULT_PAUSE_MS);
+    await sleep(animate ? RESULT_PAUSE_MS : 0);
     if (!mounted.current) return;
     setAnnouncement(`ได้รับ ${formatScore(round.pickedScore)} คะแนน`);
     setResult(round);

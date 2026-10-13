@@ -26,7 +26,7 @@ All screenshots were taken at 375px on the deployed site.
 ## Features
 
 - **Home:** total score, progress bar with three checkpoints, claim buttons, reset, and tabs for play history and reward history (paginated)
-- **Game:** draws 300, 500, 1,000 or 3,000 points. The other options are eliminated one by one, then a dialog shows the result. You can play again without leaving the page.
+- **Game:** draws 300, 500, 1,000 or 3,000 points. A highlight runs across the options while the API draws, slows down and stops on the result, then a dialog shows it. You can play again without leaving the page.
 - **Anonymous player:** no sign-up. The browser keeps an HttpOnly session cookie for 180 days.
 - **Responsive:** designed for 300–500px phones and also works on tablets
 - **Accessible:** native `<dialog>`, keyboard support, screen reader announcements and reduced motion
