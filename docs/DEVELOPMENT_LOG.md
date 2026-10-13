@@ -38,7 +38,7 @@ The main problems I ran into while building this project, what caused them, and 
 
 ## Decisions worth noting
 
-- **The server decides the score.** The web app requests a round first and then animates towards the result, so the browser cannot choose the outcome.
+- **The server decides the score.** A highlight runs across the options while the round is requested, but it stops where the API response says, so the browser cannot choose the outcome.
 - **The order of claim errors is fixed:** 404 for an unknown checkpoint, then the version check, then `CHECKPOINT_LOCKED`, then `REWARD_ALREADY_CLAIMED`. Clients get the same answer for the same state.
 - **Reset keeps the session** and increments `progressVersion`, so other open tabs notice and reload instead of writing to old progress.
 - **Near the cap the dialog shows both numbers,** the score drawn and the points credited, so 3,000 never silently becomes 200.

@@ -17,11 +17,11 @@ A small points game built as a full-stack take-home assignment. Players draw a r
 | :-------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------: |
 | <img src="docs/screenshots/home.jpg" width="250" alt="Home page with 5,000 points and reward A ready to claim"> | <img src="docs/screenshots/home-claim-modal.jpg" width="250" alt="Dialog confirming reward A was claimed"> | <img src="docs/screenshots/home-reward-history.jpg" width="250" alt="Reward history tab"> |
 
-|                                          Game                                          |                                               Drawing                                               |                                              Result                                               |
-| :------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: |
-| <img src="docs/screenshots/game-start.jpg" width="250" alt="Game page before drawing"> | <img src="docs/screenshots/game-playing.jpg" width="250" alt="Options being eliminated one by one"> | <img src="docs/screenshots/game-result.jpg" width="250" alt="Result dialog showing 1,000 points"> |
+|                                          Game                                          |                                                Drawing                                                 |                                              Result                                               |
+| :------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: |
+| <img src="docs/screenshots/game-start.jpg" width="250" alt="Game page before drawing"> | <img src="docs/screenshots/game-playing.jpg" width="250" alt="A highlight running across the options"> | <img src="docs/screenshots/game-result.jpg" width="250" alt="Result dialog showing 1,000 points"> |
 
-All screenshots were taken at 375px on the deployed site.
+All screenshots were taken at 375px wide.
 
 ## Features
 
@@ -50,7 +50,7 @@ Browser ──► Next.js on Vercel ──/api/* rewrite──► NestJS on Rend
 ```
 
 - The browser only talks to the Next.js app. Next.js forwards `/api/*` to the API (`API_ORIGIN`), so the session cookie is first-party and is not blocked as a third-party cookie.
-- The API decides every score. The web app only animates the result it receives, so the outcome cannot be changed from the browser.
+- The API decides every score. While the request is in flight a highlight runs across the options, but where it stops comes from the API response, so the outcome cannot be changed from the browser.
 
 ```text
 apps/
