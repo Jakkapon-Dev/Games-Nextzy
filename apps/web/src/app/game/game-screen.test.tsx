@@ -75,6 +75,16 @@ describe('GameScreen', () => {
     });
   });
 
+  it('shows a busy label and blocks a second click while the round is in flight', async () => {
+    play.mutateAsync.mockReturnValueOnce(new Promise(() => {}));
+    render(<GameScreen />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'สุ่มคะแนน' }));
+
+    expect(screen.getByRole('button', { name: 'กำลังสุ่มคะแนน…' })).toBeDisabled();
+    expect(play.mutateAsync).toHaveBeenCalledTimes(1);
+  });
+
   it('resets the board after closing the dialog so the player can play again', async () => {
     play.mutateAsync.mockResolvedValueOnce(round);
     render(<GameScreen />);
